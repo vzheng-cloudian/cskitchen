@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Main-Class: com.css.cloudkitchen.CSKitchen
+Class-Path: uuid-3.2.jar jacorb-3.9.jar log4j-1.2.17.jar log4j-api-2.11.
+ 2.jar log4j-jcl-2.11.2.jar slf4j-api-1.7.14.jar jacorb-omgapi-3.9.jar l
+ og4j-core-2.11.2.jar slf4j-jdk14-1.7.14.jar jacorb-services-3.9.jar jun
+ it-4.13.1.jar hamcrest-core-1.3.jar
+
