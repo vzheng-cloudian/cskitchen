@@ -93,7 +93,7 @@ public class OrderGenerator implements IMessageHandler, Callable<Integer> {
         order.setPickupTime(totalOrders);
         order.setCommand(CSKitchen.CMD_EXIT);
         try {
-            Thread.sleep(order.getPrepTime() * CSKitchen.THOUSAND);
+            Thread.sleep((long) order.getPrepTime() * CSKitchen.THOUSAND);
         } catch (InterruptedException e) {
             //ignore
         }

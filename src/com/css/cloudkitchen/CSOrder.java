@@ -1,6 +1,5 @@
 package com.css.cloudkitchen;
 
-import com.eaio.uuid.UUIDGen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,6 @@ public class CSOrder extends CSMessage{
     private static final Logger logger = LoggerFactory.getLogger(CSOrder.class);
 
     private final int prepTime;
-    private final Random random = new Random();
 
     public enum FoodOffering {
         CheesePizza("Cheese Pizza", 13),
@@ -89,12 +87,11 @@ public class CSOrder extends CSMessage{
 
     @Override
     public String toString() {
-        String sb = "CSOrder: " +
+        return "CSOrder: " +
                 this.id + "," +
                 this.createTime + "," +
                 this.prepTime + "," +
                 this.readyTime + "," +
                 this.pickupTime;
-        return sb;
     }
 }

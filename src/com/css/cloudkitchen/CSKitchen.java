@@ -110,10 +110,10 @@ public class CSKitchen{
     }
 
     public static void usage() {
-        System.out.println("usage: -o <number> -ops <number> -r <y|n> -t <1|2|3>");
+        System.out.println("usage: -o <number> -ops <number> -q <number> -r <y|n> -t <1|2|3>");
         System.out.println("-o <number>   --> Total number of orders, default is 100, range from 1 to 100,000.");
-        System.out.println("-ops <Number> --> Order per second, default is 2, range from 1 to 100.");
-        System.out.println("-q <Number>   --> Max queue length, default is 1000, range from 1 to 100,000.");
+        System.out.println("-ops <number> --> Order per second, default is 2, range from 1 to 100.");
+        System.out.println("-q <number>   --> Max queue length, default is 1000, range from 1 to 100,000.");
         System.out.println("-r <y|n>      --> Randomly choosing food for orders, "
                 + "otherwise CheesePizza wil be chosen, default is [y]es.");
         System.out.println("-t <1|2|3>    --> Match type, 1: MATCH, 2: FIFO, 3: both 1 & 2 , default is 3.");
