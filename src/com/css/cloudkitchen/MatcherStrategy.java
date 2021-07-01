@@ -106,9 +106,6 @@ public class MatcherStrategy implements IMessageHandler, Callable<Integer> {
 
                 // Food ready
                 if (msg instanceof CSOrder) {
-//                    if (!msg.hasReadyTime()) { //new order
-//                        continue;
-//                    }
 
                     // food ready for pickup, apply matching strategy
                     if (type == 1) { // matched strategy
