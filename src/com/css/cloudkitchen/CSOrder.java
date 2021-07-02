@@ -60,6 +60,7 @@ public class CSOrder extends CSMessage{
 
     /**
      * Construct an order with random food or static food (CheesePizza)
+     * @param randomFood Randomly select food type or not
      */
     public CSOrder(final boolean randomFood) {
         this.createTime = System.currentTimeMillis();
@@ -75,6 +76,10 @@ public class CSOrder extends CSMessage{
         this.prepTime = fo.getPrepTime();
     }
 
+    /**
+     * Constructor for cloning
+     * @param source To be cloned
+     */
     public CSOrder(final CSOrder source) {
         super.deepCopy(source);
         this.prepTime = source.getPrepTime();

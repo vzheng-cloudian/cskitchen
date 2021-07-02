@@ -3,6 +3,7 @@ package com.css.cloudkitchen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -11,6 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * The core of the Message Bus system.
  * It registers message producers and consumers ( also called publisher and subscribers ).
  * It gets messages from the Message Bus, and dispatches them to the subscribers.
+ * Adopt Observer and Singleton and Mediator design pattern.
  */
 public class MessageDispatcher implements Callable<Integer> {
     private static final Logger logger = LoggerFactory.getLogger(MessageDispatcher.class);
@@ -18,21 +20,24 @@ public class MessageDispatcher implements Callable<Integer> {
     private static final AtomicBoolean stopSign = new AtomicBoolean(false);
     // main message bus
     private final ArrayBlockingQueue<CSMessage> mainQueue = new ArrayBlockingQueue<>(CSKitchen.maxQueue);
-    private final List<IMessageHandler> consumer;
+    private final List<IMessageHandler> consumer = new ArrayList<>();
     private final ThreadPoolExecutor retryTPool =
             Helpers.createConstraintPool("Dispatch-Retry ", CSKitchen.maxQueue, CSKitchen.KEEP_ALIVE);
     private final ExecutorCompletionService<Integer> compServ = new ExecutorCompletionService<>(retryTPool);
 
+    private static final MessageDispatcher self = new MessageDispatcher();
 
-    public MessageDispatcher(final List<IMessageHandler> producer,
-                             final List<IMessageHandler> consumer) throws Exception {
-        this.consumer = consumer;
-        if (producer == null || this.consumer == null) {
-            throw new Exception("Invalid producer or consumer");
+    private MessageDispatcher() {}
+
+    public static MessageDispatcher getInstance() {
+        return self;
+    }
+
+    public void register(final IMessageHandler subscriber) {
+        if (subscriber.getInQueue() != null) {
+            this.consumer.add(subscriber);
         }
-        for (IMessageHandler oh : producer) {
-            oh.setOutQueue(this.mainQueue);
-        }
+        subscriber.setOutQueue(this.mainQueue);
     }
 
     @Override

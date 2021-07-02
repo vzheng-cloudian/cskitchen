@@ -3,8 +3,6 @@ package com.css.cloudkitchen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -14,6 +12,7 @@ import java.util.concurrent.TimeUnit;
  * Main class
  * Assemble the main workflow by creating threads for each component.
  * Monitoring the threads, terminate them when done or in error.
+ * Adopt Chain of Responsibility design pattern.
  */
 public class CSKitchen{
     public static final int MAX_THREADS = 10;
@@ -35,8 +34,6 @@ public class CSKitchen{
 
     private final ThreadPoolExecutor tPool = Helpers.createConstraintPool("CSKitchen ", MAX_THREADS, KEEP_ALIVE);
     private final ExecutorCompletionService<Integer> compServ = new ExecutorCompletionService<>(tPool);
-    private final List<IMessageHandler> producer = new ArrayList<>();
-    private final List<IMessageHandler> consumer = new ArrayList<>();
 
     public CSKitchen(final int orders, final int orderPerSecond, final int type, final boolean randomFood) {
         this.runType = type;
@@ -45,35 +42,35 @@ public class CSKitchen{
         this.randomFood = randomFood;
     }
 
-    private void assembleWorkflow() throws Exception{
+    private void assembleChain() {
+        MessageDispatcher mBus = MessageDispatcher.getInstance();
         // generate orders
         OrderGenerator og = new OrderGenerator(this.orderPerSecond, this.totalOrders, this.randomFood);
-        producer.add(og);
+        mBus.register(og);
 
         // prepare food
         FoodCooker fc = new FoodCooker();
-        consumer.add(fc);
-        producer.add(fc);
+        mBus.register(fc);
         compServ.submit(fc);
 
         // dispatch courier for delivery
         CourierAssigner ca = new CourierAssigner();
-        consumer.add(ca);
-        producer.add(ca);
+        mBus.register(ca);
         compServ.submit(ca);
 
         // apply different strategy
         if (runType == 1 || runType == 3) {
-            MatcherStrategy ms1 = new MatcherStrategy(1);
-            consumer.add(ms1);
+            MatcherStrategy ms1 = new MatcherStrategy(new StrategyMatch());
+            mBus.register(ms1);
             compServ.submit(ms1);
         }
         if (runType == 2 || runType == 3) {
-            MatcherStrategy ms2 = new MatcherStrategy(2);
-            consumer.add(ms2);
+            MatcherStrategy ms2 = new MatcherStrategy(new StrategyFIFO());
+            mBus.register(ms2);
             compServ.submit(ms2);
         }
-        compServ.submit(new MessageDispatcher(this.producer, this.consumer));
+
+        compServ.submit(mBus);
 
         // start generating orders, workflow is running now
         compServ.submit(og);
@@ -84,7 +81,7 @@ public class CSKitchen{
         final int interval = 1;
         try {
 
-            assembleWorkflow();
+            assembleChain();
 
             // monitoring thread state, check for completion
             while (tPool.getCompletedTaskCount() < tPool.getTaskCount()) {
@@ -205,10 +202,12 @@ public class CSKitchen{
             idx++;
         }
 
+        long start = System.currentTimeMillis();
         CSKitchen csk = new CSKitchen(orders, ops, type, randomFood);
         csk.run();
-        System.out.println("CSKitchen end.");
-        logger.info("CSKitchen end.");
+        long runtime = System.currentTimeMillis() - start;
+        System.out.println("CSKitchen end, total time (in ms) spend " + runtime);
+        logger.info("CSKitchen end, total time (in ms) spend " + runtime);
         System.exit(0);
     }
 }

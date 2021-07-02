@@ -2,8 +2,6 @@ package com.css.cloudkitchen;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -109,17 +107,13 @@ public class UnitTests {
      */
     @Test
     public void messageDispatcherTest() throws Exception {
-        final List<IMessageHandler> producer = new ArrayList<>();
-        final List<IMessageHandler> consumer = new ArrayList<>();
         final OrderGenerator og = new OrderGenerator(12, 20, true);
         final CourierAssigner ca = new CourierAssigner();
         final FoodCooker fc = new FoodCooker();
-        producer.add(og);
-        producer.add(ca);
-        producer.add(fc);
-        consumer.add(ca);
-        consumer.add(fc);
-        final MessageDispatcher md = new MessageDispatcher(producer, consumer);
+        final MessageDispatcher md = MessageDispatcher.getInstance();
+        md.register(og);
+        md.register(ca);
+        md.register(fc);
         Thread thread1 = new Thread(ca::call);
         Thread thread2 = new Thread(fc::call);
         Thread thread3 = new Thread(og::call);
@@ -245,7 +239,7 @@ public class UnitTests {
     @Test
     public void strategyMATCHTest() {
         ArrayBlockingQueue<CSMessage> mainQueue = new ArrayBlockingQueue<>(CSKitchen.maxQueue);
-        MatcherStrategy ms1 = new MatcherStrategy(1);
+        MatcherStrategy ms1 = new MatcherStrategy(new StrategyMatch());
         Queue<CSMessage> inQueue = ms1.getInQueue();
         ms1.setOutQueue(mainQueue);
 
@@ -291,7 +285,7 @@ public class UnitTests {
     @Test
     public void strategyFIFOTest() throws InterruptedException {
         ArrayBlockingQueue<CSMessage> mainQueue = new ArrayBlockingQueue<>(CSKitchen.maxQueue);
-        MatcherStrategy ms2 = new MatcherStrategy(2);
+        MatcherStrategy ms2 = new MatcherStrategy(new StrategyFIFO());
         Queue<CSMessage> inQueue = ms2.getInQueue();
         ms2.setOutQueue(mainQueue);
         for (int i = 0; i < 110; i++) {
