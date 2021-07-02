@@ -1,4 +1,4 @@
-package com.css.cloudkitchen;
+package com.css.cloudkitchen.message;
 
 /**
  * Basic message type

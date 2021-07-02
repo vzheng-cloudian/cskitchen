@@ -1,4 +1,4 @@
-package com.css.cloudkitchen;
+package com.css.cloudkitchen.message;
 
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Define Courier
  */
-public class CSCourier extends CSMessage{
+public class CSCourier extends CSMessage {
     private static final AtomicInteger seq = new AtomicInteger(0);
 
     private final int arrivePeriod;
@@ -40,13 +40,12 @@ public class CSCourier extends CSMessage{
 
     @Override
     public String toString() {
-        String sb = "CSCourier: " +
+        return "CSCourier: " +
                 this.id + "," +
                 this.createTime + "," +
                 this.arrivePeriod + "," +
                 this.readyTime + "," +
                 this.pickupTime;
-        return sb;
     }
 
     /**

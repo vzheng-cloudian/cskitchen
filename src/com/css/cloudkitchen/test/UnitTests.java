@@ -1,5 +1,15 @@
-package com.css.cloudkitchen;
+package com.css.cloudkitchen.test;
 
+import com.css.cloudkitchen.*;
+import com.css.cloudkitchen.handler.CourierAssigner;
+import com.css.cloudkitchen.handler.FoodCooker;
+import com.css.cloudkitchen.handler.OrderGenerator;
+import com.css.cloudkitchen.message.CSCourier;
+import com.css.cloudkitchen.message.CSMessage;
+import com.css.cloudkitchen.message.CSOrder;
+import com.css.cloudkitchen.handler.MatcherStrategy;
+import com.css.cloudkitchen.strategy.StrategyFIFO;
+import com.css.cloudkitchen.strategy.StrategyMatch;
 import org.junit.Test;
 
 import java.util.PriorityQueue;

@@ -1,4 +1,4 @@
-package com.css.cloudkitchen;
+package com.css.cloudkitchen.message;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +10,7 @@ import java.util.UUID;
  * Define the Order type.
  * Provide an API to randomly choose a food type from the list.
  */
-public class CSOrder extends CSMessage{
+public class CSOrder extends CSMessage {
     private static final Logger logger = LoggerFactory.getLogger(CSOrder.class);
 
     private final int prepTime;

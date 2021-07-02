@@ -1,9 +1,13 @@
-package com.css.cloudkitchen;
+package com.css.cloudkitchen.strategy;
+
+import com.css.cloudkitchen.message.CSCourier;
+import com.css.cloudkitchen.message.CSMessage;
+import com.css.cloudkitchen.message.CSOrder;
 
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 
-public class StrategyFIFO extends AbstractStrategy{
+public class StrategyFIFO extends AbstractStrategy {
     private final ArrayList<CSOrder> foodList = new ArrayList<>();
     private final PriorityQueue<CSCourier> courierPQ = new PriorityQueue<>((o1, o2) -> {
         if (o1.getReadyTime() <= 0L || o2.getReadyTime() <= 0L) {

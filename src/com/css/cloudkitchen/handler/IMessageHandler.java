@@ -1,4 +1,6 @@
-package com.css.cloudkitchen;
+package com.css.cloudkitchen.handler;
+
+import com.css.cloudkitchen.message.CSMessage;
 
 import java.util.concurrent.ArrayBlockingQueue;
 

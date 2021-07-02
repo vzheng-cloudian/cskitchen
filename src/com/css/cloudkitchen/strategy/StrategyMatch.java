@@ -1,4 +1,8 @@
-package com.css.cloudkitchen;
+package com.css.cloudkitchen.strategy;
+
+import com.css.cloudkitchen.message.CSCourier;
+import com.css.cloudkitchen.message.CSMessage;
+import com.css.cloudkitchen.message.CSOrder;
 
 import java.util.ArrayList;
 
