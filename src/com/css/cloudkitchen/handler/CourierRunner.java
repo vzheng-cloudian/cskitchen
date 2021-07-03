@@ -4,7 +4,6 @@ import com.css.cloudkitchen.CSKitchen;
 import com.css.cloudkitchen.Helpers;
 import com.css.cloudkitchen.message.CSCourier;
 import com.css.cloudkitchen.message.CSMessage;
-import com.css.cloudkitchen.message.CSOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,14 +16,14 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Both message consumer and producer.
- * Get Order message from message bus, dispatch the order to a courier,
+ * Get Courier message from message bus,
  * create a thread to simulate courier arrival.
  * After courier arrival, send Courier message to message bus.
  * Exit when all orders have been handled.
- * Return the total number of orders been handled.
+ * Return the total number of couriers been handled.
  */
-public class CourierAssigner implements IMessageHandler, Callable<Integer> {
-    private static final Logger logger = LoggerFactory.getLogger(CourierAssigner.class);
+public class CourierRunner implements IMessageHandler, Callable<Integer> {
+    private static final Logger logger = LoggerFactory.getLogger(CourierRunner.class);
 
     private boolean alive = false;
     private ArrayBlockingQueue<CSMessage> mainQueue = null;
@@ -32,7 +31,7 @@ public class CourierAssigner implements IMessageHandler, Callable<Integer> {
     private final ThreadPoolExecutor courierTPool;
     private final ExecutorCompletionService<Integer> compServ;
 
-    public CourierAssigner() {
+    public CourierRunner() {
         courierTPool = Helpers.createConstraintPool("Courier ", CSKitchen.maxQueue, CSKitchen.KEEP_ALIVE);
         compServ = new ExecutorCompletionService<>(courierTPool);
     }
@@ -49,7 +48,7 @@ public class CourierAssigner implements IMessageHandler, Callable<Integer> {
 
     @Override
     public boolean filter(final CSMessage csMessage) {
-        return csMessage.hasCommand() || csMessage instanceof CSOrder && !csMessage.hasReadyTime();
+        return csMessage.hasCommand() || (csMessage instanceof CSCourier && !((CSCourier) csMessage).isArrived());
     }
 
     @Override
@@ -82,29 +81,28 @@ public class CourierAssigner implements IMessageHandler, Callable<Integer> {
                     continue;
                 }
                 if (msg.hasCommand()) {
-                    if (msg.getCommand().equals(CSKitchen.CMD_EXIT)) {
+                    if (msg.getCommand().startsWith(CSKitchen.CMD_EXIT)) {
                         runState = false;
-                        total = (int) msg.getPickupTime();
-                        logger.info("Get exit command, total {} orders, Courier is quiting...", total);
+                        total = Integer.parseInt(msg.getCommandOption());
+                        logger.info("Get exit command, total {} orders, CourierRunner is quiting...", total);
                         break;
                     }
                 }
-                final CSCourier courier = new CSCourier(CSKitchen.COURIER_START, CSKitchen.COURIER_END);
-                courier.setOrderPickedUp(msg.getId());
                 compServ.submit(() -> {
                     try {
-                        Thread.sleep((long) courier.getArrivePeriod() * CSKitchen.THOUSAND);
-                        courier.setReadyTime(System.currentTimeMillis());
+                        Thread.sleep((long) ((CSCourier)msg).getArrivePeriod() * CSKitchen.THOUSAND);
+                        ((CSCourier) msg).setArriveTime(System.currentTimeMillis());
                         for (int i = 0; i < CSKitchen.MSG_RETRY; i++) {
                             try {
-                                mainQueue.add(courier);
+                                mainQueue.add(msg);
                                 break;
                             } catch (Exception e) {
                                 logger.error("Failed to put to queue {} times, caught:", i, e);
                                 Thread.sleep((i + 1) * CSKitchen.THOUSAND);
                             }
                         }
-                        String logMsg1 = courier.getName() + " arrived at " + courier.getReadyTime();
+                        String logMsg1 = ((CSCourier) msg).getName() + " arrived at "
+                                + ((CSCourier) msg).getArriveTime();
                         System.out.println(logMsg1);
                         logger.info(logMsg1);
                         return 1;
@@ -113,13 +111,9 @@ public class CourierAssigner implements IMessageHandler, Callable<Integer> {
                     }
                     return 0;
                 });
-                String logMsg2 = courier.getName() + " dispatched at " + courier.getCreateTime()
-                        + ", will arrive in " + courier.getArrivePeriod() + "s.";
-                System.out.println(logMsg2);
-                logger.info(logMsg2);
                 counter++;
             } catch (Exception e) {
-                logger.error("Courier catch: ", e);
+                logger.error("CourierRunner catch: ", e);
             }
         }
         this.alive = false;

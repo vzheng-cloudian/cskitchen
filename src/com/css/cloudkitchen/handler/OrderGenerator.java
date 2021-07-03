@@ -74,10 +74,10 @@ public class OrderGenerator implements IMessageHandler, Callable<Integer> {
                         Thread.sleep((long) errors * CSKitchen.THOUSAND);
                         continue;
                     }
-                    String msg = "Order " + order.getId() + " received at " + order.getCreateTime()
+                    String msg = "Order " + order.getOrderId() + " received at " + order.getCreateTime()
                             + ", will be ready in " + order.getPrepTime() + "s.";
                     System.out.println(msg);
-                    logger.info(msg);
+                    logger.info(msg + "\n" + order);
                 }
                 i += orderPerSecond;
                 if (System.currentTimeMillis() - ts < CSKitchen.THOUSAND) {
@@ -93,8 +93,7 @@ public class OrderGenerator implements IMessageHandler, Callable<Integer> {
 
         // send exit command to notify other components
         order = new CSOrder(false);
-        order.setPickupTime(totalOrders);
-        order.setCommand(CSKitchen.CMD_EXIT);
+        order.setCommand(CSKitchen.CMD_EXIT, Integer.toString(totalOrders));
         try {
             Thread.sleep((long) order.getPrepTime() * CSKitchen.THOUSAND);
         } catch (InterruptedException e) {

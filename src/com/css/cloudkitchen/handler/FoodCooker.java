@@ -48,7 +48,7 @@ public class FoodCooker implements IMessageHandler, Callable<Integer> {
 
     @Override
     public boolean filter(final CSMessage csMessage) {
-        return  (csMessage.hasCommand() || csMessage instanceof CSOrder && !csMessage.hasReadyTime());
+        return  (csMessage.hasCommand() || (csMessage instanceof CSOrder && !((CSOrder) csMessage).isReady()));
     }
 
     @Override
@@ -82,9 +82,9 @@ public class FoodCooker implements IMessageHandler, Callable<Integer> {
                     continue;
                 }
                 if (msg.hasCommand()) {
-                    if (msg.getCommand().equals(CSKitchen.CMD_EXIT)) {
+                    if (msg.getCommand().startsWith(CSKitchen.CMD_EXIT)) {
                         runState = false;
-                        total = (int) msg.getPickupTime();
+                        total = Integer.parseInt(msg.getCommandOption());
                         logger.info("Get exit command, total {} orders, Cooker is quiting...", total);
                         break;
                     }
@@ -104,7 +104,7 @@ public class FoodCooker implements IMessageHandler, Callable<Integer> {
                             }
                         }
 
-                        String log = "Order " + order.getId() + " prepared at " + order.getReadyTime();
+                        String log = "Order " + order.getOrderId() + " prepared at " + order.getReadyTime();
                         System.out.println(log);
                         logger.info(log);
                         return 1;

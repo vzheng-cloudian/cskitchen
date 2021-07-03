@@ -1,13 +1,10 @@
 package com.css.cloudkitchen.test;
 
 import com.css.cloudkitchen.*;
-import com.css.cloudkitchen.handler.CourierAssigner;
-import com.css.cloudkitchen.handler.FoodCooker;
-import com.css.cloudkitchen.handler.OrderGenerator;
+import com.css.cloudkitchen.handler.*;
 import com.css.cloudkitchen.message.CSCourier;
 import com.css.cloudkitchen.message.CSMessage;
 import com.css.cloudkitchen.message.CSOrder;
-import com.css.cloudkitchen.handler.MatcherStrategy;
 import com.css.cloudkitchen.strategy.StrategyFIFO;
 import com.css.cloudkitchen.strategy.StrategyMatch;
 import org.junit.Test;
@@ -59,32 +56,32 @@ public class UnitTests {
     @Test
     public void priorityQTest() throws Exception {
         PriorityQueue<CSCourier> courierPQ = new PriorityQueue<>((o1, o2) -> {
-            if (o1.getReadyTime() <= 0L || o2.getReadyTime() <= 0L) {
+            if (o1.getArriveTime() <= 0L || o2.getArriveTime() <= 0L) {
                 return 0;
             }
-            return Long.compare(o1.getReadyTime(), o2.getReadyTime());
+            return Long.compare(o1.getArriveTime(), o2.getArriveTime());
         });
 
         int total = 100;
         CSCourier cbase = new CSCourier(9, 15); // the smallest readyTime as the base
-        cbase.setReadyTime(cbase.getCreateTime() + cbase.getArrivePeriod() * 1000L);
-        System.out.println("B:" + cbase.getReadyTime());
+        cbase.setArriveTime(cbase.getDispatchTime() + cbase.getArrivePeriod() * 1000L);
+        System.out.println("B:" + cbase.getArriveTime());
         courierPQ.add(cbase);
 
         for (int i = 0; i < total; i++) {
             Thread.sleep(1);
-            // add new couries
+            // add new couriers
             CSCourier courier = new CSCourier(3, 15);
-            courier.setReadyTime(courier.getCreateTime() + courier.getArrivePeriod() * 1000L);
-            if (cbase.getReadyTime() > courier.getReadyTime()) {
-                cbase = new CSCourier(courier);
-                System.out.println("B:" + cbase.getReadyTime());
+            courier.setArriveTime(courier.getDispatchTime() + courier.getArrivePeriod() * 1000L);
+            if (cbase.getArriveTime() > courier.getArriveTime()) {
+                cbase = courier;
+                System.out.println("B:" + cbase.getArriveTime());
             }
             courierPQ.add(courier);
 
             CSCourier cnew = courierPQ.peek();
             assert cnew != null;
-            assertEquals(cbase.getReadyTime(), cnew.getReadyTime());
+            assertEquals(cbase.getArriveTime(), cnew.getArriveTime());
         }
     }
 
@@ -118,7 +115,7 @@ public class UnitTests {
     @Test
     public void messageDispatcherTest() throws Exception {
         final OrderGenerator og = new OrderGenerator(12, 20, true);
-        final CourierAssigner ca = new CourierAssigner();
+        final CourierDispatcher ca = new CourierDispatcher();
         final FoodCooker fc = new FoodCooker();
         final MessageDispatcher md = MessageDispatcher.getInstance();
         md.register(og);
@@ -142,16 +139,16 @@ public class UnitTests {
     }
 
     /**
-     * Test the class CourierAssigner.
-     * 1. send all kinds of messages to CourierAssigner;
+     * Test the class CourierDispatcher.
+     * 1. send all kinds of messages to CourierDispatcher;
      * 2. it can deal with all these messages;
      * 3. it only handle those messages it wants.
      * 4. exit when get the EXIT command.
      */
     @Test
-    public void courierAssignerTest() {
+    public void courierDispatcherTest() {
         ArrayBlockingQueue<CSMessage> mainQueue = new ArrayBlockingQueue<>(CSKitchen.maxQueue);
-        CourierAssigner ca = new CourierAssigner();
+        CourierDispatcher ca = new CourierDispatcher();
         Queue<CSMessage> inQueue = ca.getInQueue();
         ca.setOutQueue(mainQueue);
 
@@ -174,7 +171,7 @@ public class UnitTests {
             }
             // arrived couriers
             CSCourier courier2 = new CSCourier(3, 15);
-            courier2.setReadyTime(System.currentTimeMillis());
+            courier2.setArriveTime(System.currentTimeMillis());
             if (ca.filter(courier2)) {
                 inQueue.add(courier2);
             }
@@ -182,12 +179,68 @@ public class UnitTests {
 
         // send exit command
         CSOrder order = new CSOrder(false);
-        order.setCommand(CSKitchen.CMD_EXIT);
+        order.setCommand(CSKitchen.CMD_EXIT, "100");
         inQueue.add(order);
 
         Integer total = ca.call();
         assertEquals(100, (int) total);
         assertEquals(100, mainQueue.size());
+        CSMessage msg = mainQueue.peek();
+        assertTrue(msg instanceof CSCourier);
+        assertFalse(((CSCourier) msg).isArrived());
+    }
+
+    /**
+     * Test the class CourierRunner.
+     * 1. send all kinds of messages to CourierRunner;
+     * 2. it can deal with all these messages;
+     * 3. it only handle those messages it wants.
+     * 4. exit when get the EXIT command.
+     */
+    @Test
+    public void courierRunnerTest() throws InterruptedException {
+        ArrayBlockingQueue<CSMessage> mainQueue = new ArrayBlockingQueue<>(CSKitchen.maxQueue);
+        CourierRunner cr = new CourierRunner();
+        Queue<CSMessage> inQueue = cr.getInQueue();
+        cr.setOutQueue(mainQueue);
+
+        for (int i = 0; i < 100; i++) {
+            // new orders
+            CSOrder order1 = new CSOrder(true);
+            if (cr.filter(order1)) {
+                inQueue.add(order1);
+            }
+            // cooked orders
+            CSOrder order2 = new CSOrder(true);
+            order2.setReadyTime(System.currentTimeMillis());
+            if (cr.filter(order2)) {
+                inQueue.add(order2);
+            }
+            // new couriers
+            CSCourier courier1 = new CSCourier(3, 15);
+            if (cr.filter(courier1)) {
+                inQueue.add(courier1);
+            }
+            // arrived couriers
+            CSCourier courier2 = new CSCourier(3, 15);
+            courier2.setArriveTime(System.currentTimeMillis());
+            if (cr.filter(courier2)) {
+                inQueue.add(courier2);
+            }
+        }
+
+        // send exit command
+        CSOrder order = new CSOrder(false);
+        order.setCommand(CSKitchen.CMD_EXIT, "100");
+        inQueue.add(order);
+
+        Integer total = cr.call();
+        Thread.sleep(16 * CSKitchen.THOUSAND);
+        assertEquals(100, (int) total);
+        assertEquals(100, mainQueue.size());
+        CSMessage msg = mainQueue.peek();
+        assertTrue(msg instanceof CSCourier);
+        assertTrue(((CSCourier) msg).isArrived());
     }
 
     /**
@@ -223,7 +276,7 @@ public class UnitTests {
             }
             // arrived couriers
             CSCourier courier2 = new CSCourier(3, 15);
-            courier2.setReadyTime(System.currentTimeMillis());
+            courier2.setArriveTime(System.currentTimeMillis());
             if (fc.filter(courier2)) {
                 inQueue.add(courier2);
             }
@@ -231,7 +284,7 @@ public class UnitTests {
 
         // send exit command
         CSOrder order = new CSOrder(false);
-        order.setCommand(CSKitchen.CMD_EXIT);
+        order.setCommand(CSKitchen.CMD_EXIT, "100");
         inQueue.add(order);
 
         Integer total = fc.call();
@@ -268,16 +321,16 @@ public class UnitTests {
             inQueue.add(courier1);
             // arrived couriers
             CSCourier courier2 = new CSCourier(3, 15);
-            courier2.setReadyTime(System.currentTimeMillis());
+            courier2.setArriveTime(System.currentTimeMillis());
             if (i % 2 == 1) {
-                courier2.setOrderPickedUp(order2.getId());
+                courier2.setOrderPickedUp(order2.getOrderId());
             }
             inQueue.add(courier2);
         }
 
         // send exit command
         CSOrder order = new CSOrder(false);
-        order.setCommand(CSKitchen.CMD_EXIT);
+        order.setCommand(CSKitchen.CMD_EXIT, "50");
         inQueue.add(order);
 
         Integer total = ms1.call();
@@ -300,7 +353,7 @@ public class UnitTests {
         ms2.setOutQueue(mainQueue);
         for (int i = 0; i < 110; i++) {
             CSCourier courier = new CSCourier(3, 15);
-            courier.setReadyTime(courier.getCreateTime() + courier.getArrivePeriod() * 1000L);
+            courier.setArriveTime(courier.getDispatchTime() + courier.getArrivePeriod() * 1000L);
             inQueue.add(courier);
             Thread.sleep(1);
         }
@@ -319,7 +372,7 @@ public class UnitTests {
 
         // send exit command
         CSOrder order = new CSOrder(false);
-        order.setCommand(CSKitchen.CMD_EXIT);
+        order.setCommand(CSKitchen.CMD_EXIT, "100");
         inQueue.add(order);
 
         Integer total = ms2.call();

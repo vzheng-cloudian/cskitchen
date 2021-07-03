@@ -1,7 +1,9 @@
 package com.css.cloudkitchen.handler;
 
 import com.css.cloudkitchen.CSKitchen;
+import com.css.cloudkitchen.message.CSCourier;
 import com.css.cloudkitchen.message.CSMessage;
+import com.css.cloudkitchen.message.CSOrder;
 import com.css.cloudkitchen.strategy.AbstractStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,9 @@ public class MatcherStrategy implements IMessageHandler, Callable<Integer> {
 
     @Override
     public boolean filter(final CSMessage csMessage) {
-        return (csMessage.hasReadyTime() || csMessage.hasCommand());
+        return (csMessage.hasCommand()
+                || (csMessage instanceof CSOrder && ((CSOrder) csMessage).isReady())
+                || (csMessage instanceof CSCourier && ((CSCourier) csMessage).isArrived()));
     }
 
     @Override
@@ -72,9 +76,10 @@ public class MatcherStrategy implements IMessageHandler, Callable<Integer> {
                 }
 
                 if (msg.hasCommand()) {
-                    if (msg.getCommand().equals(CSKitchen.CMD_EXIT)) {
-                        logger.info("Get exit command, Matcher {} is quiting...", strategy.getName());
-                        total = (int) msg.getPickupTime();
+                    if (msg.getCommand().startsWith(CSKitchen.CMD_EXIT)) {
+                        total = Integer.parseInt(msg.getCommandOption());
+                        logger.info("Get exit command, total {} orders, Matcher {} is quiting...",
+                                total, strategy.getName());
                         stopSign = true;
                         continue;
                     }

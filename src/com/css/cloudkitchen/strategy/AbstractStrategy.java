@@ -45,10 +45,10 @@ public abstract class AbstractStrategy {
         orderCount.incrementAndGet();
         long foodWait = order.getPickupTime() - order.getReadyTime();
         foodLatency.addAndGet(foodWait);
-        long courierWait = courier.getPickupTime() - courier.getReadyTime();
+        long courierWait = courier.getPickupTime() - courier.getArriveTime();
         courierLatency.addAndGet(courierWait);
 
-        String msg = name + ": Order " + order.getId() + " picked up by " + courier.getName()
+        String msg = name + ": Order " + order.getOrderId() + " picked up by " + courier.getName()
                 + ", food wait " + foodWait + ", courier wait " + courierWait;
         System.out.println(msg);
         logger.info(msg);

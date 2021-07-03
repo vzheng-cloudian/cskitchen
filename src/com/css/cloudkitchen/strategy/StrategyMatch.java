@@ -19,7 +19,7 @@ public class StrategyMatch extends AbstractStrategy {
         // Food ready
         if (msg instanceof CSOrder) {
             for (CSCourier courier : courierList) {
-                if (msg.getId().equals(courier.getOrderPickedUp())) {
+                if (((CSOrder) msg).getOrderId().equals(courier.getOrderPickedUp())) {
                     doMatch((CSOrder) msg, courier, System.currentTimeMillis());
                     courierList.remove(courier);
                     return msg;
@@ -32,7 +32,7 @@ public class StrategyMatch extends AbstractStrategy {
 
         // Courier arrival
         for (CSOrder order : foodList) {
-            if (order.getId().equals(((CSCourier) msg).getOrderPickedUp())) {
+            if (order.getOrderId().equals(((CSCourier) msg).getOrderPickedUp())) {
                 doMatch(order, (CSCourier) msg, System.currentTimeMillis());
                 foodList.remove(order);
                 return order;

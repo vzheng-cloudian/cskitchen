@@ -13,7 +13,77 @@ import java.util.UUID;
 public class CSOrder extends CSMessage {
     private static final Logger logger = LoggerFactory.getLogger(CSOrder.class);
 
+    private final String orderId;
+    private final String name;
+    private final long createTime;
     private final int prepTime;
+    private long readyTime = 0L;
+    private long pickupTime = 0L;
+
+    /**
+     * Construct an order with random food or static food (CheesePizza)
+     * @param randomFood Randomly select food type or not
+     */
+    public CSOrder(final boolean randomFood) {
+        this.createTime = System.currentTimeMillis();
+        UUID uuid = new UUID(createTime, System.nanoTime());
+        FoodOffering fo;
+        if (randomFood) {
+            fo = FoodOffering.getRandomFood();
+        } else {
+            fo = FoodOffering.CheesePizza;
+        }
+        this.orderId = uuid.toString();
+        this.name = fo.getFood();
+        this.prepTime = fo.getPrepTime();
+    }
+
+    public int getPrepTime() {
+        return prepTime;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public long getCreateTime() {
+        return createTime;
+    }
+
+    public long getReadyTime() {
+        return readyTime;
+    }
+
+    public void setReadyTime(final long readyTime) {
+        this.readyTime = readyTime;
+    }
+
+    public long getPickupTime() {
+        return pickupTime;
+    }
+
+    public void setPickupTime(final long pickupTime) {
+        this.pickupTime = pickupTime;
+    }
+
+    public boolean isReady() {
+        return this.readyTime > 0L;
+    }
+
+    @Override
+    public String toString() {
+        return "MSG: " + this.msgID + ", CSOrder: " +
+                this.orderId + "," +
+                this.name + "," +
+                this.createTime + "," +
+                this.prepTime + "," +
+                this.readyTime + "," +
+                this.pickupTime;
+    }
 
     public enum FoodOffering {
         CheesePizza("Cheese Pizza", 13),
@@ -56,47 +126,5 @@ public class CSOrder extends CSMessage {
             logger.info("Unable to get a random food, Salad returned.");
             return Salad;
         }
-    }
-
-    /**
-     * Construct an order with random food or static food (CheesePizza)
-     * @param randomFood Randomly select food type or not
-     */
-    public CSOrder(final boolean randomFood) {
-        this.createTime = System.currentTimeMillis();
-        UUID uuid = new UUID(createTime, System.nanoTime());
-        FoodOffering fo;
-        if (randomFood) {
-            fo = FoodOffering.getRandomFood();
-        } else {
-            fo = FoodOffering.CheesePizza;
-        }
-        this.id = uuid.toString();
-        this.name = fo.getFood();
-        this.prepTime = fo.getPrepTime();
-    }
-
-    /**
-     * Constructor for cloning
-     * @param source To be cloned
-     */
-    public CSOrder(final CSOrder source) {
-        super.deepCopy(source);
-        this.prepTime = source.getPrepTime();
-    }
-
-
-    public int getPrepTime() {
-        return prepTime;
-    }
-
-    @Override
-    public String toString() {
-        return "CSOrder: " +
-                this.id + "," +
-                this.createTime + "," +
-                this.prepTime + "," +
-                this.readyTime + "," +
-                this.pickupTime;
     }
 }

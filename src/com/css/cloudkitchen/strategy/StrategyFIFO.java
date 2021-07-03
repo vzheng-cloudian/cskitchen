@@ -10,10 +10,10 @@ import java.util.PriorityQueue;
 public class StrategyFIFO extends AbstractStrategy {
     private final ArrayList<CSOrder> foodList = new ArrayList<>();
     private final PriorityQueue<CSCourier> courierPQ = new PriorityQueue<>((o1, o2) -> {
-        if (o1.getReadyTime() <= 0L || o2.getReadyTime() <= 0L) {
+        if (o1.getArriveTime() <= 0L || o2.getArriveTime() <= 0L) {
             return 0;
         }
-        return Long.compare(o1.getReadyTime(), o2.getReadyTime());
+        return Long.compare(o1.getArriveTime(), o2.getArriveTime());
     });
 
     public StrategyFIFO() {

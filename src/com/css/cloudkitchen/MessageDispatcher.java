@@ -48,10 +48,9 @@ public class MessageDispatcher implements Callable<Integer> {
     public Integer call() {
         logger.info("Message Dispatcher start.");
         Integer total = 0;
-        CSMessage message;
         do {
             try {
-                message = mainQueue.poll(1, TimeUnit.SECONDS);
+                final CSMessage message = mainQueue.poll(1, TimeUnit.SECONDS);
                 if (message == null) {
                     continue;
                 }
@@ -91,13 +90,7 @@ public class MessageDispatcher implements Callable<Integer> {
         return total;
     }
 
-    private void addRetryThread(final ArrayBlockingQueue<CSMessage> outQueue, final CSMessage message) {
-        final CSMessage msgRetry;
-        if (message instanceof CSOrder) {
-            msgRetry = new CSOrder((CSOrder) message);
-        } else {
-            msgRetry = new CSCourier((CSCourier) message);
-        }
+    private void addRetryThread(final ArrayBlockingQueue<CSMessage> outQueue, final CSMessage msgRetry) {
 
         compServ.submit(() -> {
             try {

@@ -1,6 +1,7 @@
 package com.css.cloudkitchen;
 
-import com.css.cloudkitchen.handler.CourierAssigner;
+import com.css.cloudkitchen.handler.CourierDispatcher;
+import com.css.cloudkitchen.handler.CourierRunner;
 import com.css.cloudkitchen.handler.FoodCooker;
 import com.css.cloudkitchen.handler.MatcherStrategy;
 import com.css.cloudkitchen.handler.OrderGenerator;
@@ -60,9 +61,14 @@ public class CSKitchen{
         compServ.submit(fc);
 
         // dispatch courier for delivery
-        CourierAssigner ca = new CourierAssigner();
-        mBus.register(ca);
-        compServ.submit(ca);
+        CourierDispatcher cd = new CourierDispatcher();
+        mBus.register(cd);
+        compServ.submit(cd);
+
+        // courier arriving
+        CourierRunner cr = new CourierRunner();
+        mBus.register(cr);
+        compServ.submit(cr);
 
         // apply different strategy
         if (runType == 1 || runType == 3) {

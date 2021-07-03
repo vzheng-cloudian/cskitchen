@@ -11,19 +11,45 @@ public class CSCourier extends CSMessage {
 
     private final int arrivePeriod;
     private String orderPickedUp;
+    private final String name;
+    private final long dispatchTime;
+    private long arriveTime = 0L;
+    private long pickupTime = 0L;
+
 
     public CSCourier(final int start, final int end) {
         int seqId = seq.incrementAndGet();
-        this.id = Integer.toString(seqId);
-        this.name = "Courier-#" + this.id;
-        this.createTime = System.currentTimeMillis();
+        this.name = "Courier-#" + seqId;
+        this.dispatchTime = System.currentTimeMillis();
         this.arrivePeriod = uniformDistribution(start, end);
     }
 
-    public CSCourier(final CSCourier source) {
-        super.deepCopy(source);
-        this.arrivePeriod = source.getArrivePeriod();
-        this.orderPickedUp = source.getOrderPickedUp();
+    public String getName() {
+        return name;
+    }
+
+    public long getDispatchTime() {
+        return dispatchTime;
+    }
+
+    public long getArriveTime() {
+        return arriveTime;
+    }
+
+    public void setArriveTime(final long arriveTime) {
+        this.arriveTime = arriveTime;
+    }
+
+    public long getPickupTime() {
+        return pickupTime;
+    }
+
+    public void setPickupTime(final long pickupTime) {
+        this.pickupTime = pickupTime;
+    }
+
+    public boolean isArrived() {
+        return this.arriveTime > 0L;
     }
 
     public int getArrivePeriod() {
@@ -40,11 +66,11 @@ public class CSCourier extends CSMessage {
 
     @Override
     public String toString() {
-        return "CSCourier: " +
-                this.id + "," +
-                this.createTime + "," +
+        return "MSG: " + this.msgID + ", CSCourier: " +
+                this.name + "," +
+                this.dispatchTime + "," +
                 this.arrivePeriod + "," +
-                this.readyTime + "," +
+                this.arriveTime + "," +
                 this.pickupTime;
     }
 
