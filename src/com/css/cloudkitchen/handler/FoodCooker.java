@@ -86,7 +86,7 @@ public class FoodCooker implements IMessageHandler, Callable<Integer> {
                         runState = false;
                         total = Integer.parseInt(msg.getCommandOption());
                         logger.info("Get exit command, total {} orders, Cooker is quiting...", total);
-                        break;
+                        continue;
                     }
                 }
                 final CSOrder order = (CSOrder) msg;

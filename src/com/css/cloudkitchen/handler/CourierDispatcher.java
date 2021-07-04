@@ -76,7 +76,7 @@ public class CourierDispatcher implements IMessageHandler, Callable<Integer> {
                         runState = false;
                         total = Integer.parseInt(msg.getCommandOption());
                         logger.info("Get exit command, total {} orders, CourierDispatcher is quiting...", total);
-                        break;
+                        continue;
                     }
                 }
                 final CSCourier courier = new CSCourier(CSKitchen.COURIER_START, CSKitchen.COURIER_END);

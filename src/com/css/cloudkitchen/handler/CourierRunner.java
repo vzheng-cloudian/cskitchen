@@ -85,7 +85,7 @@ public class CourierRunner implements IMessageHandler, Callable<Integer> {
                         runState = false;
                         total = Integer.parseInt(msg.getCommandOption());
                         logger.info("Get exit command, total {} orders, CourierRunner is quiting...", total);
-                        break;
+                        continue;
                     }
                 }
                 compServ.submit(() -> {
