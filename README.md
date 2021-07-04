@@ -37,17 +37,19 @@ Source code is in the code.zip . IntellJ IDEA is used for this project.
 
 ## 2.2 
   
-  Adopting interface based programming technology, to simplify the structure, and make the system easy to extend. Total lines in this approach are less than 1000 .
+  Applying abstraction, inheritance and polymorphism OOP concepts, make the system structure simple and extendable. 
 
   
 ## 2.3 
   
-  Message Bus (which supports publisher / subscriber mode) architecture will be easy to scale up, and also be better isolation / modularization. It would be the best architecture for this project.
+  Message Bus (which supports publisher / subscriber mode) architecture will be easy to scale up, and also be better isolation / modularization. It would be the best practice for this project.
+
+  Covered the heavy workload scenario, set the retry mechanism, messages will be discarded when all retries fail. The persistent store of these messages can be considered to handle those failed messages, to provide a reliable message system, but it didn't implement in this approach. 
 
   
 ## 2.4 
   
-  PriorityQueue satisfies both the sorting and the first-in-first-out requirements. It is suitable to implement the FIFO strategy for matching order and courier.
+  PriorityQueue satisfies the sorting requirements. It is suitable for implementing the FIFO strategy of matching order and courier.
 
   
 ## 2.5 

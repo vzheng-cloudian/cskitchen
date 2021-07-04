@@ -1,9 +1,7 @@
 package com.css.cloudkitchen;
 
 import com.css.cloudkitchen.handler.IMessageHandler;
-import com.css.cloudkitchen.message.CSCourier;
 import com.css.cloudkitchen.message.CSMessage;
-import com.css.cloudkitchen.message.CSOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,14 +53,14 @@ public class MessageDispatcher implements Callable<Integer> {
                     continue;
                 }
                 total++;
-                for (IMessageHandler oh : this.consumer) {
+                for (IMessageHandler mh : this.consumer) {
                     try {
-                        if (oh.isAlive() && oh.filter(message)) {
-                            oh.getInQueue().add(message);
+                        if (mh.isAlive() && mh.filter(message)) {
+                            mh.getInQueue().add(message);
                         }
                     } catch (Exception e) {
                         logger.error("Failed to handle {} , put to retry thread.", message);
-                        addRetryThread(oh.getInQueue(), message);
+                        addRetryThread(mh, message);
                     }
                 }
             } catch (Throwable e) {
@@ -90,12 +88,16 @@ public class MessageDispatcher implements Callable<Integer> {
         return total;
     }
 
-    private void addRetryThread(final ArrayBlockingQueue<CSMessage> outQueue, final CSMessage msgRetry) {
+    private void addRetryThread(final IMessageHandler mh, final CSMessage msgRetry) {
+        final ArrayBlockingQueue<CSMessage> outQueue = mh.getInQueue();
 
         compServ.submit(() -> {
             try {
                 for (int i = 0; i < CSKitchen.MSG_RETRY; i++)  {
                     try {
+                        if (!mh.isAlive()) {
+                            break;
+                        }
                         outQueue.add(msgRetry);
                         logger.info("Re-send message {} successfully.", msgRetry);
                         break;
