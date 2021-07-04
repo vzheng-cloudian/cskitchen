@@ -5,7 +5,7 @@ import com.css.cloudkitchen.message.CSMessage;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * Define interface for message plugins.
+ * Define interface for message handler.
  * A message handler can be a message consumer or a message producer, or both of them.
  * It plug into the message bus, get messages from it / put messages to it.
  */

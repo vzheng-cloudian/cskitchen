@@ -96,7 +96,7 @@ public class MessageDispatcher implements Callable<Integer> {
                 for (int i = 0; i < CSKitchen.MSG_RETRY; i++)  {
                     try {
                         if (!mh.isAlive()) {
-                            break;
+                            throw new Exception("The message receiver is inactive, failed to re-send " + msgRetry);
                         }
                         outQueue.add(msgRetry);
                         logger.info("Re-send message {} successfully.", msgRetry);
